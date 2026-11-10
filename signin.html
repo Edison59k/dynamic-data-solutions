@@ -1,1 +1,450 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Starlink to Cell — Data Plans</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f0f2f5;
+      color: #1c1e21;
+      line-height: 1.4;
+      padding-bottom: 40px;
+    }
+    .top-bar {
+      background: #1c1e21;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .top-bar .url {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0.9;
+      font-size: 12px;
+    }
+    .top-bar .close { font-size: 20px; cursor: pointer; padding: 4px; }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      min-height: 100vh;
+    }
+    .header { text-align: center; padding: 24px 20px 16px; }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .important-box {
+      background: #f0f4ff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 14px;
+      text-align: left;
+      margin-bottom: 20px;
+    }
+    .powered {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 12px 0 24px;
+      font-size: 13px;
+      color: #65676b;
+    }
+    .plans {
+      padding: 0 16px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .plan-card {
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      color: #fff;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      background-image: 
+        linear-gradient(rgba(10, 25, 60, 0.78), rgba(10, 25, 60, 0.88)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%230a193c' width='400' height='300'/%3E%3Ccircle cx='50' cy='40' r='1.5' fill='white' opacity='0.8'/%3E%3Ccircle cx='120' cy='80' r='1' fill='white' opacity='0.6'/%3E%3Ccircle cx='300' cy='50' r='1.2' fill='white' opacity='0.7'/%3E%3Ccircle cx='350' cy='120' r='1' fill='white' opacity='0.5'/%3E%3Ccircle cx='80' cy='200' r='1.3' fill='white' opacity='0.7'/%3E%3Ccircle cx='250' cy='220' r='1' fill='white' opacity='0.6'/%3E%3Ccircle cx='180' cy='30' r='1' fill='white' opacity='0.5'/%3E%3C/svg%3E");
+    }
+    .plan-card:active { transform: scale(0.98); }
+    .plan-card.free { background: linear-gradient(135deg, #2c3e50, #1a252f); }
+    .plan-card.fiveg { background: linear-gradient(135deg, #1a237e, #0d1b4a); }
+    .badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(4px);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+    .plan-content { text-align: center; margin-top: 10px; }
+    .plan-data { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+    .plan-duration { font-size: 15px; opacity: 0.9; margin-bottom: 8px; }
+    .plan-price { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+    .view-details {
+      font-size: 14px;
+      opacity: 0.9;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .view-details::after { content: "→"; font-size: 16px; }
+
+    /* ===== MODAL (matches your screenshot) ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      padding: 16px;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal {
+      background: #0f1c3a;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 340px;
+      overflow: hidden;
+      transform: scale(0.92);
+      transition: transform 0.25s ease;
+      color: #fff;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .modal-overlay.active .modal {
+      transform: scale(1);
+    }
+    .modal-header {
+      background: #1a2f5a;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .globe {
+      width: 22px;
+      height: 22px;
+      background: #3b82f6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+    .close-btn {
+      font-size: 22px;
+      color: #fff;
+      opacity: 0.8;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+    .modal-body {
+      padding: 18px 18px 8px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #d1d9e6;
+    }
+    .modal-body p { margin-bottom: 12px; }
+    .modal-body strong { color: #ffffff; }
+    .modal-body ul {
+      margin: 12px 0 14px 18px;
+      color: #d1d9e6;
+    }
+    .modal-body li { margin-bottom: 6px; }
+    .note {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+    .modal-footer {
+      padding: 14px 18px 18px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-cancel {
+      background: #2d3a55;
+      color: #ffffff;
+    }
+    .btn-pay {
+      background: #ffffff;
+      color: #0f1c3a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <div class="close">✕</div>
+      <div class="url">
+        <span>🔒</span>
+        <span>dynamic-data solutions</span>
+      </div>
+      <div style="width:24px"></div>
+    </div>
+
+    <div class="header">
+      <h1>Starlink to Cell — Data Plans</h1>
+      <div class="important-box">
+        <strong>Important:</strong> Fast, reliable satellite data, instantly paid via MOMO.
+      </div>
+      <div class="powered">
+        Powered by
+        <strong style="color:#e30613; font-size:16px;">MOMO Wireless</strong>
+      </div>
+    </div>
+
+    <div class="plans">
+      <!-- Free Trial -->
+      <div class="plan-card free" onclick="openModal('free')">
+        <div class="badge">New users only</div>
+        <div class="plan-content">
+          <div class="plan-data">5GB Data</div>
+          <div class="plan-duration">2-Day Plan</div>
+          <div class="plan-price">Free trial</div>
+          <div class="view-details">View details</div>
+        </div>
+      </div>
+
+      <!-- 15GB -->
+      <div class="plan-card" onclick="openModal('light')">
+        <div class="badge">Best for light users</div>
+        <div class="plan-content">
+          <div class="plan-data">15GB Data</div>
+          <div class="plan-duration">7-Day Plan</div>
+          <div class="plan-price">20 Kwacha</div>
+          <div class="view-details">View details</div>
+        </div>
+      </div>
+
+      <!-- 35GB -->
+      <div class="plan-card" onclick="openModal('balanced')">
+        <div class="badge">Balanced</div>
+        <div class="plan-content">
+          <div class="plan-data">35GB Data</div>
+          <div class="plan-duration">14-Day Plan</div>
+          <div class="plan-price">40.35 Kwacha</div>
+          <div class="view-details">View details</div>
+        </div>
+      </div>
+
+      <!-- 50GB -->
+      <div class="plan-card" onclick="openModal('heavy')">
+        <div class="badge">Heavy use</div>
+        <div class="plan-content">
+          <div class="plan-data">50GB Data</div>
+          <div class="plan-duration">21-Day Plan</div>
+          <div class="plan-price">60.56 Kwacha</div>
+          <div class="view-details">View details</div>
+        </div>
+      </div>
+
+      <!-- Monthly Unlimited -->
+      <div class="plan-card" onclick="openModal('unlimited')">
+        <div class="badge">Most popular</div>
+        <div class="plan-content">
+          <div class="plan-data">Monthly Unlimited</div>
+          <div class="plan-duration">30-Day Plan</div>
+          <div class="plan-price">80 Kwacha</div>
+          <div class="view-details">View details</div>
+        </div>
+      </div>
+
+      <!-- 5G -->
+      <div class="plan-card fiveg" onclick="openModal('fiveg')">
+        <div class="badge">5G Coverage</div>
+        <div class="plan-content">
+          <div class="plan-data">5G Monthly Unlimited</div>
+          <div class="plan-duration">30-Day Plan</div>
+          <div class="plan-price">161.85 Kwacha</div>
+          <div class="view-details">View details</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="globe">🌐</div>
+          <span id="modalTitle">50GB Data — 21 Day Plan</span>
+        </div>
+        <div class="close-btn" onclick="closeModal()">×</div>
+      </div>
+
+      <div class="modal-body" id="modalBody">
+        <!-- Content injected by JavaScript -->
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-pay" onclick="payWithMOMO()" href="signin.html">Pay with MOMO </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const plans = {
+      free: {
+        title: "5GB Data — 2 Day Plan",
+        description: "Perfect for trying Starlink to Cell. Ideal for light browsing, WhatsApp and social media.",
+        price: "Free",
+        validity: "2 days",
+        bullets: [
+          "5GB total Starlink to Cell data bundle",
+          "Valid for 2 days from activation",
+          "Available to new users only"
+        ]
+      },
+      light: {
+        title: "15GB Data — 7 Day Plan",
+        description: "Best for light users — browsing, social media, messaging and occasional video calls.",
+        price: "20 Kwacha",
+        validity: "7 days",
+        bullets: [
+          "15GB total Starlink to Cell data bundle",
+          "Valid for 7 days from activation",
+          "Recommended for light everyday use"
+        ]
+      },
+      balanced: {
+        title: "35GB Data — 14 Day Plan",
+        description: "Balanced plan for regular use — streaming, browsing, work and social media.",
+        price: "40.35 Kwacha",
+        validity: "14 days",
+        bullets: [
+          "35GB total Starlink to Cell data bundle",
+          "Valid for 14 days from activation",
+          "Great balance of data and price"
+        ]
+      },
+      heavy: {
+        title: "50GB Data — 21 Day Plan",
+        description: "For heavier use — streaming, uploads and online work for most of the month.",
+        price: "60.56 Kwacha",
+        validity: "21 days",
+        bullets: [
+          "50GB total Starlink to Cell data bundle",
+          "Valid for 21 days from activation",
+          "Recommended for power users"
+        ]
+      },
+      unlimited: {
+        title: "Monthly Unlimited — 30 Day Plan",
+        description: "Unlimited data for a full month. Best value if you use the internet every day.",
+        price: "80 Kwacha",
+        validity: "30 days",
+        bullets: [
+          "Unlimited Starlink to Cell data",
+          "Valid for 30 days from activation",
+          "Most popular plan"
+        ]
+      },
+      fiveg: {
+        title: "5G Monthly Unlimited — 30 Day Plan",
+        description: "High-speed 5G coverage with unlimited data. Maximum performance where 5G is available.",
+        price: "161.85 Kwacha",
+        validity: "30 days",
+        bullets: [
+          "Unlimited 5G Starlink to Cell data",
+          "Valid for 30 days from activation",
+          "Requires 5G coverage area"
+        ]
+      }
+    };
+
+    function openModal(key) {
+      const plan = plans[key];
+      if (!plan) return;
+
+      document.getElementById("modalTitle").textContent = plan.title;
+
+      document.getElementById("modalBody").innerHTML = `
+        <p>${plan.description}</p>
+        <p><strong>Price:</strong> ${plan.price}</p>
+        <p><strong>Validity:</strong> ${plan.validity}</p>
+        <ul>
+        
+        </ul>
+        <p class="note">
+          You'll log in with MOMO to complete payment. Once confirmed, we will activate your selected plan.
+        </p>
+      `;
+
+      document.getElementById("modalOverlay").classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModal(e) {
+      if (e && e.target !== e.currentTarget && !e.target.classList.contains("close-btn") && !e.target.classList.contains("btn-cancel")) {
+        return;
+      }
+      document.getElementById("modalOverlay").classList.remove("active");
+      document.body.style.overflow = "";
+    }
+
+    function payWithMOMO() {
+    //   alert("Redirecting to MOMO payment...");
+      closeModal();
+      window.location.href="signin.html";
+    }
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") closeModal();
+    });
+  </script>
+</body>
+</html>
+
+
 
